@@ -3,6 +3,12 @@ import { pgEnum, pgTable as table } from "drizzle-orm/pg-core";
 import * as t from "drizzle-orm/pg-core";
 import { db, types } from "@duneanalytics/sim-idx";
 
+export const ownerChanged = table("owner_changed", {
+  chainId: db.uint64('chain_id'),
+  caller: db.address('caller'),
+  newOwner: db.address('new_owner'),
+})
+
 export const poolCreated = table("pool_created", {
   chainId: db.uint64('chain_id'),
   caller: db.address('caller'),

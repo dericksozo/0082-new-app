@@ -5,10 +5,15 @@ import "sim-idx-generated/Generated.sol";
 
 /// Index calls to the UniswapV3Factory.createPool function on Ethereum
 /// To hook on more function calls, specify that this listener should implement that interface and follow the compiler errors.
-contract UniswapV3FactoryListener is UniswapV3Factory$OnCreatePoolFunction {
+contract UniswapV3FactoryListener is UniswapV3Factory$OnCreatePoolFunction, UniswapV3Factory$OnSetOwnerFunction {
     /// Emitted events are indexed.
     /// To change the data which is indexed, modify the event or add more events.
-    event PoolCreated(uint64 chainId, address caller, address pool, address token0, address token1, uint24 fee);
+    /// @custom:index pool_created_caller_idx BTREE (caller);
+    event PoolCreated(uint64 chainId, address indexed caller, address pool, address token0, address token1, uint24 fee);
+    
+    /// @custom:index owner_changed_caller_idx BTREE (caller);
+    event OwnerChanged(uint64 chainId, address indexed caller, address newOwner);
+
 
     /// The handler called whenever the UniswapV3Factory.createPool function is called.
     /// Within here you write your indexing specific logic (e.g., call out to other contracts to get more information).
@@ -21,5 +26,12 @@ contract UniswapV3FactoryListener is UniswapV3Factory$OnCreatePoolFunction {
         emit PoolCreated(
             uint64(block.chainid), ctx.txn.call.callee, outputs.pool, inputs.tokenA, inputs.tokenB, inputs.fee
         );
+    }
+
+    function onSetOwnerFunction(
+        FunctionContext memory ctx,
+        UniswapV3Factory$SetOwnerFunctionInputs memory inputs
+    ) external override {
+        emit OwnerChanged(uint64(block.chainid), ctx.txn.call.callee, inputs._owner);
     }
 }

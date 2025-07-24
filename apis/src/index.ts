@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { poolCreated } from "./db/schema/Listener"; // Adjust the import path as necessary
+import { poolCreated, ownerChanged } from "./db/schema/Listener"; // Adjust the import path as necessary
 import { types, db, App, middlewares } from "@duneanalytics/sim-idx"; // Import schema to ensure it's registered
 
 const filterToken0 = types.Address.from(
@@ -9,7 +9,7 @@ const filterToken0 = types.Address.from(
 const app = App.create();
 app.use("*", middlewares.authentication);
 
-app.get("/*", async (c) => {
+app.get("/pools", async (c) => {
   try {
     const result = await db
       .client(c)
@@ -17,6 +17,19 @@ app.get("/*", async (c) => {
       .from(poolCreated)
       .where(eq(poolCreated.token0, filterToken0))
       .limit(5);
+
+    return Response.json({
+      result: result,
+    });
+  } catch (e) {
+    console.error("Database operation failed:", e);
+    return Response.json({ error: (e as Error).message }, { status: 500 });
+  }
+});
+
+app.get("/owner-changes", async (c) => {
+  try {
+    const result = await db.client(c).select().from(ownerChanged).limit(5);
 
     return Response.json({
       result: result,
